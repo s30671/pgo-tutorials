@@ -1,0 +1,180 @@
+import java.util.List;
+import java.util.ArrayList;
+
+public class Artefact extends Exhibit {
+
+    private static int artefactCount = 0;
+    private String material;
+    private String timePeriod;
+
+
+    public Artefact(String name, String descritption, String lastMaintenanceDate, String material, String timePeriod) {
+        super(name, descritption, lastMaintenanceDate);
+        this.material = material;
+        this.timePeriod = timePeriod;
+    }
+
+    @Override
+    public void showInfo() {
+        super.showInfo();
+        System.out.println("Material: " + material);
+        System.out.println("Time Period: " + timePeriod);
+    }
+}
+import java.util.List;
+import java.util.ArrayList;
+
+public class Sculpture extends Exhibit {
+
+    private static int sculptureCount = 0;
+    private String material;
+    private String author;
+    private int year;
+
+    public Sculpture(String name, String descritption, String lastMaintenanceDate, String material, String author, int year) {
+        super(name, descritption, lastMaintenanceDate);
+        this.material = material;
+        this.author = author;
+        this.year = year;
+    }
+
+
+    @Override
+    public void showInfo() {
+        super.showInfo();
+        System.out.println("Material: " + material);
+        System.out.println("Author: " + author);
+        System.out.println("Year: " + year);
+    }
+}
+import java.util.List;
+import java.util.ArrayList;
+
+public class Painting extends Exhibit {
+
+    private static int paintingCount = 0;
+    private String style;
+    private String author;
+    private int year;
+
+
+    public Painting(String name, String descritption, String lastMaintenanceDate, String style, String author, int year) {
+        super(name, descritption, lastMaintenanceDate);
+        this.style = style;
+        this.author = author;
+        this.year = year;
+    }
+
+    @Override
+    public void showInfo() {
+        super.showInfo();
+        System.out.println("Style: " + style);
+        System.out.println("Author: " + author);
+        System.out.println("Year: " + year);
+    }
+
+
+}
+import java.util.List;
+import java.util.ArrayList;
+
+public class Exhibit {
+
+    private static int exhibitCount = 0;
+    private String idNumber;
+    private String name;
+    private String descritption;
+    public String lastMaintenanceDate;
+
+    public Exhibit(String name, String descritption, String lastMaintenanceDate) {
+        this.idNumber = generateIdNumber(); // sprawdzic potem
+        this.name = name;
+        this.descritption = descritption;
+        this.lastMaintenanceDate = lastMaintenanceDate;
+    }
+
+    private String generateIdNumber(){
+        String className = this.getClass().getSimpleName().toLowerCase();
+        exhibitCount++;
+        return className + "#" + exhibitCount;
+    }
+
+    public String getIdNumber(){
+        return idNumber;
+    }
+
+    public void showInfo(){
+        System.out.println("ID Number: " + idNumber);
+        System.out.println("Name: " + name);
+        System.out.println("Description: " + descritption);
+        System.out.println("Last Maintenance Date: " + lastMaintenanceDate);
+    }
+    
+}
+import java.util.ArrayList;
+import java.util.List;
+
+public class Museum {
+
+    private String address;
+    private String name;
+    private List<Exhibit> exhibits;
+
+    public Museum(String address, String name) {
+        this.address = address;
+        this.name = name;
+        this.exhibits = new ArrayList<>();
+    }
+
+    public void addExhibit(Exhibit exhibit){
+        if(exhibits.contains(exhibit)) {
+            System.out.println("Exhibit already exists in the museum");
+        } else {
+            exhibits.add(exhibit);
+            System.out.println("Exhibit added successfully");
+        }
+    }
+
+
+    public void removeExhibit (Exhibit exhibit){
+        if(exhibits.contains(exhibit)){
+            exhibits.remove(exhibit);
+            System.out.println("Exhibit removed succesfully");
+        } else {
+            throw new IllegalArgumentException("Exhibit not found in the museum");
+        }
+    }
+
+
+    public void showLastMaintenanceDate(){
+        for(Exhibit exhibit : exhibits){
+            System.out.println("Exhibit: " +  exhibit.getIdNumber() + " - Last Maintenace Date: " + exhibit.lastMaintenanceDate);
+        }
+    }
+
+
+}
+import java.util.List;
+import java.util.ArrayList;
+
+public class Main {
+    public static void main(String[] args) {
+
+        Museum museum = new Museum("Warszawska 178", "Muzeum sztuki");
+
+        Painting painting = new Painting("Mona Lisa", "Popularny obraz", "2022-03-08", "Renesans", "Leonardo Da Vinci", 1503);
+        Sculpture sculpture = new Sculpture("DaWid", "Popularna rzezba", "2022-03-08", "marmur", "Michealangelo", 1504);
+        Artefact artefact = new Artefact("Ancient Vase", "Popularny artefakt", "2022-03-08", "Ceramika", "Antyczna Grecja");
+
+        museum.addExhibit(painting);
+        museum.addExhibit(sculpture);
+        museum.addExhibit(artefact);
+
+        museum.showLastMaintenanceDate();
+
+        museum.removeExhibit(painting);
+
+        museum.removeExhibit(painting);
+    
+    }
+}
