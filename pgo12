@@ -1,0 +1,418 @@
+import java.util.ArrayList;
+import java.util.Date;
+
+public class Client {
+
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phone;
+    private int discount;
+    private ArrayList<Sale> sales=new ArrayList<>();
+
+    public Client(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public Client(String firstName, String lastName, String email, String phone) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    public double buySoftwareLicense(SoftwareLicense product){
+        if(product==null){
+            throw new IllegalArgumentException("Product cannot be null");
+        }
+
+        Sale s=findSaleForProduct(product);
+        if(s!=null){
+            throw new IllegalArgumentException("Product has been already bought");
+        }
+
+        double price= product.getPrice();
+        if(discount>0){
+            price*=1-discount;
+        }
+
+        Date now=new Date();
+        Sale newSale=new Sale(product, now, price);
+        this.sales.add(newSale);
+
+        return price;
+    }
+
+    public double buySubscription(Subscription product){
+        if(product==null){
+            throw new IllegalArgumentException("Product cannot be null");
+        }
+
+        Sale s=findSaleForProduct(product);
+        if(s!=null){
+            throw new IllegalArgumentException("Product has been already bought");
+        }
+
+        double price= product.calculateTotalCost();
+        if(discount>0){
+            price*=1-discount;
+        }
+
+        Date now=new Date();
+        Sale newSale=new Sale(product, now, price);
+        this.sales.add(newSale);
+
+        return price;
+    }
+
+    public void pay(Product p, double amount){
+        if(p==null){
+            throw new IllegalArgumentException("Product is null");
+        }
+
+        if(amount<0){
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
+
+        Sale s=findSaleForProduct(p);
+        if(s==null){
+            throw new IllegalArgumentException("Sale was not found");
+        }
+
+        s.pay(amount);
+    }
+
+    private Sale findSaleForProduct(Product p){
+        for(Sale s : sales){
+            if(s.getProduct().equals(p)){
+                return s;
+            }
+        }
+
+        return null;
+    }
+
+    public double calculateTotalPaidCost(){
+        double totalCost=0;
+        for(Sale s : sales){
+            totalCost+=s.getTotalCost();
+        }
+
+        return totalCost;
+    }
+
+    public double calculateTotalCostToBePaid(){
+        double totalCost=0;
+        for(Sale s : sales){
+            totalCost+=s.getCostToBePaid();
+        }
+
+        return totalCost;
+    }
+
+
+    public String getFullName(){
+        return firstName+" "+lastName;
+    }
+
+    public int getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(int discount) {
+        if(discount<0 || discount>100){
+            throw new IllegalArgumentException("Discount has to be between 0 and 100");
+        }
+        this.discount = discount;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    private void setFirstName(String firstName) {
+        if(firstName==null){
+            throw new IllegalArgumentException("First name cannot be null");
+        }
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    private void setLastName(String lastName) {
+        if(lastName==null){
+            throw new IllegalArgumentException("Last name cannot be null");
+        }
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    private void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    private void setPhone(String phone) {
+        this.phone = phone;
+    }
+}
+import java.util.Calendar;
+import java.util.Date;
+
+public class Sale {
+    private static int NEXT_ID=1;
+
+    private int id;
+    private Product product;
+    private Date dateOfSale;
+    private Date deadline;
+    private double totalCost;
+    private double pricePaid;
+
+
+    public Sale(Product product, Date dateOfSale, double price) {
+        this.id = NEXT_ID++;
+        this.product = product;
+        this.dateOfSale = dateOfSale;
+        this.deadline=calculateDeadline(dateOfSale);
+        this.totalCost = price;
+    }
+
+    private Date calculateDeadline(Date dateOfSale) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(dateOfSale);
+        calendar.add(Calendar.MONTH, 1); // Add one month to the dateOfSale
+        return calendar.getTime();
+    }
+
+    public void pay(double amount){
+        if(pricePaid>=totalCost){
+            throw new IllegalArgumentException("Sale has been already paid");
+        }
+
+        if(pricePaid+amount>totalCost){
+            throw new IllegalArgumentException("Amount is too high");
+        }
+
+        Date now=new Date();
+        if(deadline.before(now)){
+            throw new IllegalArgumentException("Deadline for this sale has already passed.");
+        }
+
+        this.pricePaid+=amount;
+    }
+
+    public double getCostToBePaid(){
+        return totalCost-pricePaid;
+    }
+
+    public double getPricePaid() {
+        return pricePaid;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getProductName(){
+        return this.product.getName();
+    }
+
+    private void setId(int id) {
+        this.id = id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    private void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Date getDateOfSale() {
+        return dateOfSale;
+    }
+
+    private void setDateOfSale(Date dateOfSale) {
+        this.dateOfSale = dateOfSale;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    private void setTotalCost(double price) {
+        if(price<0){
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
+        this.totalCost = price;
+    }
+}
+import java.util.Date;
+import java.util.Objects;
+
+public class SoftwareLicense implements Product {
+
+
+    private String name;
+    private String description;
+    private double price;
+    private String licenseKey;
+    private Date activationDate;
+    private UserType userType;
+
+    public SoftwareLicense(String name, String description, double price, String licenseKey, Date activationDate, UserType userType) {
+        setName(name);
+        setDescription(description);
+        setPrice(price);
+        setLicenseKey(licenseKey);
+        setLicenseKey(licenseKey);
+        setUserType(userType);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SoftwareLicense that)) return false;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
+
+    private void setLicenseKey(String licenseKey) {
+        this.licenseKey = licenseKey;
+    }
+
+    private void setActivationDate(Date activationDate) {
+        this.activationDate = activationDate;
+    }
+
+    private void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public void setName(String name) {
+        if(name==null){
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        if(description==null){
+            throw new IllegalArgumentException("Description cannot be null");
+        }
+        this.description = description;
+    }
+
+    public void setPrice(double price) {
+        if(price<0){
+            throw new IllegalArgumentException("Price cannot be less than zero");
+        }
+        this.price = price;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public double getPrice() {
+        return price;
+    }
+}
+import java.util.Objects;
+
+public class Subscription implements Product {
+
+    public static final int MAX_RENEWAL_PERIOD = 6;
+    public static final int MIN_RENEWAL_PERIOD = 1;
+
+    private String name;
+    private String description;
+    private double price;
+    private int renewalPeriod;
+
+    public Subscription(String name, String description, double price, int renewalPeriod) {
+        setName(name);
+        setDescription(description);
+        setPrice(price);
+        setRenewalPeriod(renewalPeriod);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Subscription that)) return false;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
+
+    public int getRenewalPeriod() {
+        return renewalPeriod;
+    }
+
+    private void setRenewalPeriod(int renewalPeriod) {
+        if(renewalPeriod< MIN_RENEWAL_PERIOD || renewalPeriod> MAX_RENEWAL_PERIOD){
+            throw new IllegalArgumentException("Renewal period has to be between 1 and 6 months");
+        }
+        this.renewalPeriod = renewalPeriod;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setPrice(double price) {
+        if(price<0){
+            throw new IllegalArgumentException("Price cannot be less than zero");
+        }
+        this.price = price;
+    }
+
+    public double calculateTotalCost(){
+        return renewalPeriod*price;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public double getPrice() {
+        return price;
+    }
+}
