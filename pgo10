@@ -1,0 +1,93 @@
+public interface Animal {
+ 
+    String getName();
+ 
+    void setName(String name);
+ 
+    Sex getSex();
+ 
+    void setSex(Sex sex);
+ 
+    boolean isSick();
+ 
+    void setSick(boolean sick);
+ 
+    void feed(double foodAmount, boolean isLiquid);
+ 
+}
+import java.util.ArrayList;
+import java.util.List;
+public class Employee {
+   private String firstName;
+   private String lastName;
+   private Position position;
+   private List<Animal> animals;
+   public Employee(String firstName, String lastName, Position position) {
+       this.firstName = firstName;
+       this.lastName = lastName;
+       this.position = position;
+       this.animals = new ArrayList<>();
+   }
+   public void assignAnimal(Animal animal) {
+       if ((position == Position.PartTime && animals.size() < 10) ||
+           (position == Position.FullTime && animals.size() < 50)) {
+           animals.add(animal);
+       } else {
+           throw new IllegalArgumentException("Cannot assign more animals to this employee.");
+       }
+   }
+   public void removeAnimal(Animal animal) {
+       if (!animals.remove(animal)) {
+           throw new IllegalArgumentException("Animal not found.");
+       }
+   }
+   public void feedAnimal(Animal animal, double foodAmount, boolean isLiquid) {
+       if (!animals.contains(animal)) {
+           throw new IllegalArgumentException("Animal not assigned to this employee.");
+       }
+       animal.feed(foodAmount, isLiquid);
+   }
+}
+import java.util.Date;
+public class Feeding {
+   private Date date;
+   private double foodAmount;
+   private boolean isLiquid;
+   public Feeding(Date date, double foodAmount, boolean isLiquid) {
+       this.date = date;
+       this.foodAmount = foodAmount;
+       this.isLiquid = isLiquid;
+   }
+}
+public class Bear implements Animal {
+   private String name;
+   private Sex sex;
+   private boolean sick;
+   public Bear(String name, Sex sex, boolean sick) {
+       this.name = name;
+       this.sex = sex;
+       this.sick = sick;
+   }
+   @Override
+   public String getName() { return name; }
+   @Override
+   public void setName(String name) { this.name = name; }
+   @Override
+   public Sex getSex() { return sex; }
+   @Override
+   public void setSex(Sex sex) { this.sex = sex; }
+   @Override
+   public boolean isSick() { return sick; }
+   @Override
+   public void setSick(boolean sick) { this.sick = sick; }
+   @Override
+   public void feed(double foodAmount, boolean isLiquid) {
+       double maxFood = 0;
+       boolean canBeLiquid = false;
+       if (sick) {
+           maxFood = (sex == Sex.Male) ? 50 : 40;
+           canBeLiquid = false;
+       } else {
+           maxFood = (sex == Sex.Male) ? 30 : 20;
+           canBeLiquid = (sex == Sex.Male) ? true : false;
+       }
